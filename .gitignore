@@ -1,0 +1,8 @@
+*
+!.gitignore
+
+!README*
+!LICENSE*
+!*.md
+!/src/
+!*.cr
