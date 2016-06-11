@@ -1,6 +1,8 @@
 Critter
 =======
 
+[![Join the chat at https://gitter.im/BlaXpirit/critter](https://badges.gitter.im/BlaXpirit/critter.svg)](https://gitter.im/BlaXpirit/critter?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 #### Chat bot relaying messages between [IRC][] and [Gitter][]
 
 Requires [Crystal][] 0.18 or later to compile.
