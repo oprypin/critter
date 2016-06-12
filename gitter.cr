@@ -62,9 +62,9 @@ class Gitter
 
   def run
     loop do
-      url = "https://stream.gitter.im/v1/rooms/#{@room_id}/chatMessages"
-      puts "GET #{url}"
-      HTTP::Client.get(url, headers: @headers.dup) do |resp|
+      stream_url = "https://stream.gitter.im/v1/rooms/#{@room_id}/chatMessages"
+      puts "GET #{stream_url}"
+      HTTP::Client.get(stream_url, headers: @headers.dup) do |resp|
         puts "Connected to Gitter #{room}"
         buf = ""
         resp.body_io.each_line "}" do |line|
