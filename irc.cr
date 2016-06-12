@@ -9,12 +9,18 @@ require "openssl"
 alias Pipe = Channel::Unbuffered
 
 class IRCConnection
-  @socket : TCPSocket | OpenSSL::SSL::Socket::Client
+  @socket : TCPSocket | OpenSSL::SSL::Socket::Client | Nil
   @channels_regex : Regex?
 
   def initialize(@options : ChatOptions)
     @channels = {} of String => Pipe(Message)
+  end
 
+  macro method_missing(call)
+    @options.irc_{{call}}
+  end
+
+  private def connect
     socket = TCPSocket.new(host, port)
     socket.read_timeout = 300
     socket.write_timeout = 5
@@ -34,18 +40,15 @@ class IRCConnection
     end
   end
 
-  macro method_missing(call)
-    @options.irc_{{call}}
-  end
-
   def finalize
     write "QUIT :#{quit_reason}"
-    @socket.close
+    @socket.try &.close
+  rescue
   end
 
   def write(line)
-    puts line.gsub(password, "[...]")
-    @socket << line << "\r\n"
+    line = line.gsub(password, "[...]") if password?
+    @socket.not_nil! << line << "\r\n"
   end
 
   def subscribe(channel) : Pipe
@@ -56,21 +59,43 @@ class IRCConnection
   end
 
   def run
-    @socket.each_line "\r\n" do |line|
-      line = line.strip
-      case line
-      when /^PING\b(.*)/i
-        write "PONG#{$~[1]}"
-      when @channels_regex
-        _, sender, recipient, msg = $~
-        next if sender.downcase == nick.downcase
-        puts "IRC: #{recipient} <#{sender}> #{msg.inspect}"
-        if (priv = recipient.downcase == nick.downcase)
-          recipient = @channels.keys[0]
+    wait_time = 1.0
+    loop do
+      begin
+        connect
+        loop do
+          begin
+            line = @socket.not_nil!.gets
+            raise "Disconnected" if !line || line.empty?
+            line = line.not_nil!.strip
+
+            puts line
+
+            case line
+            when /^PING\b(.*)/i
+              write "PONG#{$~[1]}"
+            when @channels_regex
+              _, sender, recipient, msg = $~
+              next if sender.downcase == nick.downcase
+              puts "IRC: #{recipient} <#{sender}> #{msg.inspect}"
+              if (priv = recipient.downcase == nick.downcase)
+                recipient = @channels.keys[0]
+              end
+              @channels[recipient.downcase].send Message.new(sender, msg, priv: priv)
+            when /^[^ ]+ +JOIN\b.*/i
+              puts line
+            end
+
+            wait_time = {wait_time / 2, 1.0}.max
+          rescue e : InvalidByteSequenceError
+            puts "#{e.class}: #{e.message}"
+          end
         end
-        @channels[recipient.downcase].send Message.new(sender, msg, priv: priv)
-      when /^[^ ]+ +JOIN\b.*/i
-        puts line
+      rescue e
+        puts "#{e.class}: #{e.message}"
+        finalize
+        sleep wait_time
+        wait_time *= 2
       end
     end
   end

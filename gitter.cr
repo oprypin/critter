@@ -61,35 +61,45 @@ class Gitter
   end
 
   def run
+    wait_time = 1.0
+    stream_url = "https://stream.gitter.im/v1/rooms/#{@room_id}/chatMessages"
     loop do
-      stream_url = "https://stream.gitter.im/v1/rooms/#{@room_id}/chatMessages"
-      puts "GET #{stream_url}"
-      HTTP::Client.get(stream_url, headers: @headers.dup) do |resp|
-        puts "Connected to Gitter #{room}"
-        buf = ""
-        resp.body_io.each_line "}" do |line|
-          buf += line
-          # "Streaming" JSON
-          begin
-            msg = JSON.parse(buf)
-          rescue
-            next
-          end
+      begin
+        puts "GET #{stream_url}"
+        HTTP::Client.get(stream_url, headers: @headers.dup) do |resp|
+          puts "Connected to Gitter #{room}"
           buf = ""
+          resp.body_io.each_line "}" do |line|
+            buf += line
+            # "Streaming" JSON
+            begin
+              msg = JSON.parse(buf)
+            rescue
+              next
+            end
+            buf = ""
 
-          sender = msg["fromUser"]["username"].as_s
-          next if sender == @user_name
+            sender = msg["fromUser"]["username"].as_s
+            next if sender == @user_name
 
-          id = msg["id"].as_s
-          msg = msg["text"].as_s.strip
+            id = msg["id"].as_s
+            msg = msg["text"].as_s.strip
 
-          puts "Gitter: #{room} <#{sender}> #{msg.inspect}"
+            puts "Gitter: #{room} <#{sender}> #{msg.inspect}"
+            yield Message.new(sender, msg, permalink: "#{url}?at=#{id}")
 
-          yield Message.new(sender, msg, permalink: "#{url}?at=#{id}")
+            wait_time = {wait_time / 2, 1.0}.max
 
-          # Mark as read
-          request :POST, "user/#{@user_id}/rooms/#{room}/unreadItems", chat: [id]
+            # Mark as read
+            spawn do
+              request :POST, "user/#{@user_id}/rooms/#{room}/unreadItems", chat: [id]
+            end
+          end
         end
+      rescue e
+        puts "#{e.class}: #{e.message}"
+        sleep wait_time
+        wait_time *= 2
       end
     end
   end
