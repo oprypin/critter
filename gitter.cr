@@ -91,9 +91,7 @@ class Gitter
             wait_time = {wait_time / 2, 1.0}.max
 
             # Mark as read
-            spawn do
-              request :POST, "user/#{@user_id}/rooms/#{room}/unreadItems", chat: [id]
-            end
+            request :POST, "user/#{@user_id}/rooms/#{room}/unreadItems", chat: [id]
           end
         end
       rescue e

@@ -48,6 +48,7 @@ class IRCConnection
 
   def write(line)
     line = line.gsub(password, "[...]") if password?
+    puts line
     @socket.not_nil! << line << "\r\n"
   end
 
@@ -68,8 +69,6 @@ class IRCConnection
             line = @socket.not_nil!.gets
             raise "Disconnected" if !line || line.empty?
             line = line.not_nil!.strip
-
-            puts line
 
             case line
             when /^PING\b(.*)/i
