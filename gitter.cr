@@ -53,7 +53,8 @@ class Gitter
   end
 
   def send(msg : Message)
-    send "**<#{msg.sender}>** #{msg.text}"
+    action = "\\*" if msg.action
+    send "**<#{msg.sender}>** #{action}#{msg.text}"
   end
 
   def tell(msg : Message)
@@ -83,10 +84,13 @@ class Gitter
             next if sender == @user_name
 
             id = msg["id"].as_s
-            msg = msg["text"].as_s.strip
+            text = msg["text"].as_s.strip
+            if action = !!msg["status"]?
+              text = text.split(2)[-1]
+            end
 
-            puts "Gitter: #{room} <#{sender}> #{msg.inspect}"
-            yield Message.new(sender, msg, permalink: "#{url}?at=#{id}")
+            puts "Gitter: #{room} <#{sender}> #{text.inspect}"
+            yield Message.new(sender, text, action: action, permalink: "#{url}?at=#{id}")
 
             wait_time = {wait_time / 2, 1.0}.max
 

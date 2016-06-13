@@ -75,12 +75,17 @@ class IRCConnection
               write "PONG#{$~[1]}"
             when @channels_regex
               _, sender, recipient, msg = $~
+              if action = !!(msg =~ /^\001ACTION (.*)\001$/i)
+                msg = $~[1]
+              end
               next if sender.downcase == nick.downcase
               puts "IRC: #{recipient} <#{sender}> #{msg.inspect}"
-              if (priv = recipient.downcase == nick.downcase)
+              if priv = (recipient.downcase == nick.downcase)
                 recipient = @channels.keys[0]
               end
-              @channels[recipient.downcase].send Message.new(sender, msg, priv: priv)
+              @channels[recipient.downcase].send Message.new(
+                sender, msg, priv: priv, action: action
+              )
             when /^[^ ]+ +JOIN\b.*/i
               puts line
             end
@@ -151,7 +156,8 @@ class IRC
 
   def send(msg : Message)
     nlines = msg.text.lines.size
-    text = "\u{02}<#{msg.sender}>\u{0f} " + msg.text.gsub('\n', " ⏎ ")
+    action = "*" if msg.action
+    text = "\u{02}<#{msg.sender}>\u{0f} #{action}" + msg.text.gsub('\n', " ⏎ ")
     if text.size > 750
       text = text[0...750] + " \u{02}...\u{0f}"
     end

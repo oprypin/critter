@@ -26,7 +26,7 @@ class ChatOptions < Options
 end
 
 
-record Message, sender : String, text : String, priv = false, permalink : String? = nil
+record Message, sender : String, text : String, priv = false, action = false, permalink : String? = nil
 
 
 
