@@ -48,13 +48,13 @@ class Gitter
     ).body
   end
 
-  def send(msg : String)
-    request :POST, "rooms/#{@room_id}/chatMessages", text: msg
+  def send(msg : String, action = false)
+    request :POST, "rooms/#{@room_id}/chatMessages", text: msg, status: action
   end
 
   def send(msg : Message)
-    action = "\\*" if msg.action
-    send "**<#{msg.sender}>** #{action}#{msg.text}"
+    sender = msg.action ? "\\* #{msg.sender}" : "<#{msg.sender}>"
+    send "**#{sender}** #{msg.text}"
   end
 
   def tell(msg : Message)

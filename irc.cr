@@ -48,7 +48,7 @@ class IRCConnection
 
   def write(line)
     line = line.gsub(password, "[...]") if password?
-    puts line
+    p line
     @socket.not_nil! << line << "\r\n"
   end
 
@@ -87,7 +87,7 @@ class IRCConnection
                 sender, msg, priv: priv, action: action
               )
             when /^[^ ]+ +JOIN\b.*/i
-              puts line
+              p line
             end
 
             wait_time = {wait_time / 2, 1.0}.max
@@ -140,24 +140,29 @@ class IRC
     end
   end
 
-  def send(msg : String, priv = false)
+  def send(msg : String, action = false, priv = false)
+    ending = ""
+    if action
+      msg = "\001ACTION #{msg}"
+      ending = "\001"
+    end
     msg = "PRIVMSG #{channel} :#{msg}"
     cutoff = 470
     if msg.bytesize <= cutoff
-      write msg
+      write msg + ending
       return
     end
     until (msg.byte_at cutoff - 1).chr.whitespace? || cutoff <= 420
       cutoff -= 1
     end
-    write msg.byte_slice(0, cutoff)
-    send "\u{02}...\u{0f} " + msg.byte_slice(cutoff)
+    write msg.byte_slice(0, cutoff) + ending
+    send "\u{02}...\u{0f} " + msg.byte_slice(cutoff), action, priv
   end
 
   def send(msg : Message)
     nlines = msg.text.lines.size
-    action = "*" if msg.action
-    text = "\u{02}<#{msg.sender}>\u{0f} #{action}" + msg.text.gsub('\n', " ⏎ ")
+    sender = msg.action ? "* #{msg.sender}" : "<#{msg.sender}>"
+    text = "\u{02}#{sender}\u{0f} " + msg.text.gsub('\n', " ⏎ ")
     if text.size > 750
       text = text[0...750] + " \u{02}...\u{0f}"
     end
@@ -165,7 +170,7 @@ class IRC
       text += " [#{msg.permalink}]" if msg.permalink
     end
 
-    send text, priv: msg.priv
+    send text, action: msg.action, priv: msg.priv
   end
 
   def tell(msg : Message)
