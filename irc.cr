@@ -160,9 +160,32 @@ class IRC
   end
 
   def send(msg : Message)
-    nlines = msg.text.lines.size
+    lines = msg.text.split('\n')
+    nlines = lines.size
+
+    i = 0
+    code_start = nil
+    while i < lines.size
+      line = lines[i].strip
+      if !code_start
+        if line.starts_with?("```") && !line.includes?(' ')
+          code_start = i
+        end
+      else
+        if line == "```"
+          sub = lines[code_start+1..i-1].join(" ⏎ ")
+          if i - code_start - 1 > 5 || sub.size > 90
+            sub = "\u{1d}code paste, see link\u{0f}"
+          end
+          lines[code_start..i] = "```#{sub}```"
+          i = code_start
+        end
+      end
+      i += 1
+    end
+
     sender = msg.action ? "* #{msg.sender}" : "<#{msg.sender}>"
-    text = "\u{02}#{sender}\u{0f} " + msg.text.gsub('\n', " ⏎ ")
+    text = "\u{02}#{sender}\u{0f} " + lines.join(" ⏎ ")
     if text.size > 750
       text = text[0...750] + " \u{02}...\u{0f}"
     end
