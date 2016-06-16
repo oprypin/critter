@@ -13,7 +13,7 @@ class ChatOptions < Options
   bool   irc_ssl = false
   string irc_channel
   string irc_nick
-  string irc_password
+  string irc_password = nil
   string irc_username = "bridge"
   string irc_hostname = System.hostname
   string irc_realname = "bridge bot"
@@ -22,7 +22,7 @@ class ChatOptions < Options
   string gitter_api_key
   string gitter_room
 
-  string contact_info   # Textual information that the bot replies to private messages with
+  string contact_info = nil   # Textual information that the bot replies to private messages with
 end
 
 
@@ -48,11 +48,11 @@ def start(options)
           text = "I'm a bot, *bleep, bloop*. I relay messages between"
           if msg.priv
             text += " IRC and Gitter rooms."
-            text += " #{options.contact_info}." if options.contact_info?
+            text += " #{options.contact_info!}." if options.contact_info
             text += " Source code: https://github.com/blaxpirit/critter"
           else
             items = chats.map { |c| c == chat ? "here" : c.url }
-            text += " #{items.join(" and ")}."
+            text += " #{items.join(" and ")}"
           end
           chat.tell Message.new(msg.sender, text, msg.priv)
         end

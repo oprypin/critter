@@ -33,7 +33,7 @@ class IRCConnection
 
     write "NICK #{nick}"
     write "USER #{username} #{hostname} unused :#{realname}"
-    if password?
+    if password
       write "PASS #{password}"
       #write "PRIVMSG NickServ :identify #{password}"
       sleep 2.seconds
@@ -47,7 +47,7 @@ class IRCConnection
   end
 
   def write(line)
-    line = line.gsub(password, "[...]") if password?
+    line = line.gsub(password!, "[...]") if password
     p line
     @socket.not_nil! << line << "\r\n"
   end

@@ -6,10 +6,6 @@
 abstract class Options
   macro def initialize(argv = ARGV)
     {% begin %}
-      {% for var in vars = @type.instance_vars %}
-        @{{var.id}} = default_{{var.id}}()
-      {% end %}
-
       argv.each do |s|
         if !s.includes? '='
           raise "Options must be specified like 'name=value', not '#{s}'"
@@ -17,38 +13,50 @@ abstract class Options
         name, value = s.split('=', 2)
         name = name.downcase.sub(/^-+/, "").gsub('-', '_')
         case name
-        {% for var in vars %}
+        {% for var in @type.instance_vars %}
           when {{var.name.stringify}}
-            @{{var.id}} = convert_{{var.id}}(value)
+            self.{{var.id}} = value
         {% end %}
         else
           raise "Unknown option '#{name}'"
         end
       end
+
+      {% for var in @type.instance_vars %}
+        if @{{var.id}} == nil && !responds_to?(:{{var.id}}_default)
+          raise "Option '{{var.id}}' is mandatory"
+        end
+      {% end %}
     {% end %}
   end
 
   macro option(name, type, convert)
     {% if name.is_a? Assign %}
       {% default = name.value %}
-      {% name = name.target %}
+      {% name = name.target.id %}
+
+      protected def {{name}}_default
+        {{default}}
+      end
+
+      def {{name}}
+        @{{name}} || {{name}}_default
+      end
+      def {{name}}!
+        @{{name}}.not_nil!
+      end
     {% else %}
-      {% default = nil %}
+      {% name = name.id %}
+
+      def {{name}}
+        @{{name}}.not_nil!
+      end
     {% end %}
 
-    @{{name.id}} : {{type.id}}?
-    def {{name.id}}? : {{type.id}}?
-      @{{name.id}} != nil ? @{{name.id}} : default_{{name.id}}
-    end
-    def {{name.id}} : {{type.id}}
-      raise "Option '{{name.id}}' is mandatory" if {{name.id}}? == nil
-      {{name.id}}?.not_nil!
-    end
-    protected def convert_{{name.id}}(s)
-      {{convert}}
-    end
-    protected def default_{{name.id}}
-      {{default}}
+    @{{name}} : {{type}}? = nil
+
+    protected def {{name}}=(s : String)
+      @{{name}} = {{convert}}
     end
   end
 
