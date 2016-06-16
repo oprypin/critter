@@ -21,6 +21,7 @@ class ChatOptions < Options
 
   string gitter_api_key
   string gitter_room
+  bool   gitter_prevent_emojis = false
 
   string contact_info = nil   # Textual information that the bot replies to private messages with
 end

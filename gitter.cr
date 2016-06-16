@@ -52,9 +52,33 @@ class Gitter
     request :POST, "rooms/#{@room_id}/chatMessages", text: msg, status: action
   end
 
+  private def escape_emojis(s : String)
+    s.gsub(
+      /:-?[)\[@(*\/S|$O]|[:;]-?[\]DP]|X-D|:['’]-?\(|;-?\)|:-X|<\/?3|:[+\-]1:/i
+    ) {
+      $~[0].insert($~[0].size/2, '\u{2060}')
+    }
+  end
+
   def send(msg : Message)
     sender = msg.action ? "\\* #{msg.sender}" : "<#{msg.sender}>"
-    send "**#{sender}** #{msg.text}"
+    text = msg.text
+
+    if prevent_emojis
+      # Add zero-width joiner to disrupt emoticon replacement
+      text = String.build do |io|
+        prev = 0
+        # But not inside code blocks
+        text.scan(/(?<!\\)`([^`]|\\`)+`/) do |m|
+          io << escape_emojis(text[prev ... m.begin.not_nil!])
+          io << m[0]
+          prev = m.end.not_nil!
+        end
+        io << escape_emojis(text[prev..-1])
+      end
+    end
+
+    send "**#{sender}** #{text}"
   end
 
   def tell(msg : Message)
@@ -86,7 +110,7 @@ class Gitter
             id = msg["id"].as_s
             text = msg["text"].as_s.strip
             if action = !!msg["status"]?
-              text = text.split(2)[-1]
+              text = text.split(2)[-1]  # Drop @nickname
             end
 
             puts "Gitter: #{room} <#{sender}> #{text.inspect}"

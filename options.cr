@@ -40,7 +40,7 @@ abstract class Options
       end
 
       def {{name}}
-        @{{name}} || {{name}}_default
+        @{{name}} != nil ? @{{name}} : {{name}}_default
       end
       def {{name}}!
         @{{name}}.not_nil!
