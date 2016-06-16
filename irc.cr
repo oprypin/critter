@@ -75,10 +75,14 @@ class IRCConnection
               write "PONG#{$~[1]}"
             when @channels_regex
               _, sender, recipient, msg = $~
+              next if sender.downcase == nick.downcase
+
               if action = !!(msg =~ /^\001ACTION (.*)\001$/i)
                 msg = $~[1]
               end
-              next if sender.downcase == nick.downcase
+
+              msg = msg.gsub /\x03[0-9][0-9](?:,[0-9][0-9])?|[\x00-\x1f]/, ""
+
               puts "IRC: #{recipient} <#{sender}> #{msg.inspect}"
               if priv = (recipient.downcase == nick.downcase)
                 recipient = @channels.keys[0]
