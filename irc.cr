@@ -189,10 +189,17 @@ class IRC
     end
 
     sender = msg.action ? "* #{msg.sender}" : "<#{msg.sender}>"
+    finish = ""
+    if lines.size > 5
+      lines.delete_at(5..-1)
+      finish = " \u{02}...\u{0f}"
+    end
     text = "\u{02}#{sender}\u{0f} " + lines.join(" ⏎ ")
     if text.size > 750
-      text = text[0...750] + " \u{02}...\u{0f}"
+      text = text[0...750]
+      finish = " \u{02}...\u{0f}"
     end
+    text += finish
     if text.size > 750 || nlines > 3
       text += " [#{msg.permalink}]" if msg.permalink
     end
