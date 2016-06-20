@@ -52,7 +52,7 @@ def start(options)
             text += " #{options.contact_info!}." if options.contact_info
             text += " Source code: https://github.com/blaxpirit/critter"
           else
-            items = chats.map { |c| c == chat ? "here" : c.url }
+            items = chats.map { |c| c == chat ? "here" : c.location }
             text += " #{items.join(" and ")}"
           end
           chat.tell Message.new(msg.sender, text, msg.priv)

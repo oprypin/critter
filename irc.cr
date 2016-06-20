@@ -131,10 +131,8 @@ class IRC
     @connection.write line
   end
 
-  def url
-    chan = channel
-    chan = chan[1..-1] if chan =~ /^#[^#]/
-    "irc://#{host}/#{chan}"
+  def location
+    "IRC (#{channel} on #{host})"
   end
 
   def run

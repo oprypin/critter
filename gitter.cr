@@ -32,7 +32,7 @@ class Gitter
     @options.gitter_{{call}}
   end
 
-  def url
+  def location
     "https://gitter.im/#{room}"
   end
 
@@ -116,7 +116,7 @@ class Gitter
             end
 
             puts "Gitter: #{room} <#{sender}> #{text.inspect}"
-            yield Message.new(sender, text, action: action, permalink: "#{url}?at=#{id}")
+            yield Message.new(sender, text, action: action, permalink: "#{location}?at=#{id}")
 
             wait_time = {wait_time / 2, 1.0}.max
 
