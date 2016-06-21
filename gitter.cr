@@ -10,6 +10,7 @@ class Gitter
   @room_id : String
   @user_id : String
   @user_name : String
+  @participants = Set(String).new
 
   def initialize(@options : ChatOptions)
     @headers = HTTP::Headers{
@@ -66,6 +67,12 @@ class Gitter
     sender = msg.action ? "\\* #{msg.sender}" : "<#{msg.sender}>"
     text = msg.text
 
+    if insert_mentions
+      text = text.sub /^([^ ]+)[,:] / {
+        "#{"@" if @participants.includes? $~[1]}#{$~[0]}"
+      }
+    end
+
     if prevent_emojis
       # Add zero-width joiner to disrupt emoticon replacement
       text = String.build do |io|
@@ -108,6 +115,7 @@ class Gitter
 
             sender = msg["fromUser"]["username"].as_s
             next if sender == @user_name
+            @participants << sender
 
             id = msg["id"].as_s
             text = msg["text"].as_s.strip
