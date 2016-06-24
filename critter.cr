@@ -18,6 +18,8 @@ class ChatOptions < Options
   string irc_hostname = System.hostname
   string irc_realname = "bridge bot"
   string irc_quit_reason = "Shutting down"
+  int    irc_read_timeout = 180
+  int    irc_write_timeout = 5
 
   string gitter_api_key
   string gitter_room

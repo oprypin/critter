@@ -10,6 +10,7 @@ alias Pipe = Channel::Unbuffered
 
 class IRCConnection
   @socket : TCPSocket | OpenSSL::SSL::Socket::Client | Nil
+  @orig_socket : TCPSocket | Nil
   @channels_regex : Regex?
 
   def initialize(@options : ChatOptions)
@@ -22,21 +23,24 @@ class IRCConnection
 
   private def connect
     socket = TCPSocket.new(host, port)
-    socket.read_timeout = 300
-    socket.write_timeout = 5
+    socket.read_timeout = read_timeout
+    socket.write_timeout = write_timeout
     socket.keepalive = true
+    @socket = @orig_socket = socket
     if ssl
-      socket = OpenSSL::SSL::Socket::Client.new(socket)
+      @socket = OpenSSL::SSL::Socket::Client.new(socket)
     end
-    @socket = socket
-    at_exit { finalize }
 
+    sleep 2.seconds
     write "NICK #{nick}"
     write "USER #{username} #{hostname} unused :#{realname}"
     if password
       write "PASS #{password}"
       #write "PRIVMSG NickServ :identify #{password}"
-      sleep 2.seconds
+    end
+    sleep 2.seconds
+    @channels.each_key do |channel|
+      write "JOIN #{channel}"
     end
   end
 
@@ -50,17 +54,21 @@ class IRCConnection
     line = line.gsub(password!, "[...]") if password
     p line
     @socket.not_nil! << line << "\r\n"
+  rescue e
+    puts "#{e.class}: #{e.message}"
   end
 
   def subscribe(channel) : Pipe
     @channels[channel.downcase] = result = Pipe(Message).new
     recipients = (@channels.keys + [nick]).map { |k| Regex.escape(k) } .join("|")
     @channels_regex = /^:([^ ]+)![^ ]+ +PRIVMSG +(#{recipients}) :(.+)/i
+    write "JOIN #{channel}"
     result
   end
 
   def run
-    wait_time = 1.0
+    wait_time = 2.0
+    timeout = false
     loop do
       begin
         connect
@@ -68,6 +76,7 @@ class IRCConnection
           begin
             line = @socket.not_nil!.gets
             raise "Disconnected" if !line || line.empty?
+            timeout = false
             line = line.not_nil!.strip
 
             case line
@@ -94,14 +103,19 @@ class IRCConnection
               p line
             end
 
-            wait_time = {wait_time / 2, 1.0}.max
+            wait_time = {wait_time / 2, 2.0}.max
           rescue e : InvalidByteSequenceError
             puts "#{e.class}: #{e.message}"
+          rescue e : IO::Timeout
+            puts "#{e.class}: #{e.message}"
+            write "PING :#{hostname}"
+            raise e if timeout
+            timeout = true
           end
         end
       rescue e
         puts "#{e.class}: #{e.message}"
-        finalize
+        @socket.try &.close
         sleep wait_time
         wait_time *= 2
       end
@@ -136,7 +150,6 @@ class IRC
   end
 
   def run
-    write "JOIN #{channel}"
     loop do
       yield @pipe.receive
     end
