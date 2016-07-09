@@ -51,8 +51,11 @@ class IRCConnection
   end
 
   def write(line)
-    line = line.gsub(password!, "[...]") if password
-    p line
+    if password
+      p line.gsub(password!, "[...]")
+    else
+      p line
+    end
     @socket.not_nil! << line << "\r\n"
   rescue e
     puts "#{e.class}: #{e.message}"
