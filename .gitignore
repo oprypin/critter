@@ -6,3 +6,4 @@
 !*.md
 !/src/
 !*.cr
+!/logo.png

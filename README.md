@@ -1,7 +1,6 @@
-Critter
-=======
+# ![Critter](logo.png "CRITTER")
 
-#### Chat bot relaying messages between [IRC][] and [Gitter][]
+### Chat bot relaying messages between [IRC][] and [Gitter][]
 
 Requires [Crystal][] 0.18 or later to compile.
 
