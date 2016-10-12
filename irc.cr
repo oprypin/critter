@@ -118,7 +118,7 @@ class IRCConnection
         end
       rescue e
         puts "#{e.class}: #{e.message}"
-        @socket.try &.close
+        @socket.try &.close rescue nil
         sleep wait_time
         wait_time *= 2
       end
