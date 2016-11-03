@@ -102,16 +102,10 @@ class Gitter
         puts "GET #{stream_url}"
         HTTP::Client.get(stream_url, headers: @headers.dup) do |resp|
           puts "Connected to Gitter #{room}"
-          buf = ""
-          resp.body_io.each_line "}" do |line|
-            buf += line
-            # "Streaming" JSON
-            begin
-              msg = JSON.parse(buf)
-            rescue
-              next
-            end
-            buf = ""
+          resp.body_io.each_line do |line|
+            line = line.strip
+            next if line.empty?
+            msg = JSON.parse(line)
 
             sender = msg["fromUser"]["username"].as_s
             next if sender == @user_name
