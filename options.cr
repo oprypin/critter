@@ -3,8 +3,19 @@
 # Released under the terms of the MIT license (see LICENSE).
 
 
+private record Option(T), value : T, set : Bool do
+  def initialize
+    @value = uninitialized T
+    @set = false
+  end
+
+  def initialize(@value : T)
+    @set = true
+  end
+end
+
 abstract class Options
-  macro def initialize(argv = ARGV)
+  def initialize(argv = ARGV)
     {% begin %}
       argv.each do |s|
         if !s.includes? '='
@@ -23,50 +34,55 @@ abstract class Options
       end
 
       {% for var in @type.instance_vars %}
-        if @{{var.id}} == nil && !responds_to?(:{{var.id}}_default)
-          raise "Option '{{var.id}}' is mandatory"
+        {% var = var.id %}
+        if @{{var}}.is_a?(Option) && !@{{var}}.set && !responds_to?(:{{var}}!)
+          raise "Option '{{var}}' is mandatory"
         end
       {% end %}
     {% end %}
   end
 
-  macro option(name, type, convert)
+  macro option(name, type, &convert)
     {% if name.is_a? Assign %}
       {% default = name.value %}
       {% name = name.target.id %}
 
-      protected def {{name}}_default
-        {{default}}
-      end
-
       def {{name}}
-        @{{name}} != nil ? @{{name}} : {{name}}_default
+        @{{name}}.set ? @{{name}}.value : {{default}}
       end
       def {{name}}!
-        @{{name}}.not_nil!
+        if @{{name}}.set
+          @{{name}}.value
+        else
+          raise TypeCastError.new("Option '{{name}}' hasn't been set")
+        end
       end
     {% else %}
       {% name = name.id %}
 
       def {{name}}
-        @{{name}}.not_nil!
+        @{{name}}.value
       end
     {% end %}
 
-    @{{name}} : {{type}}? = nil
+    @{{name}} = Option({{type}}).new
 
-    protected def {{name}}=(s : String)
-      @{{name}} = {{convert}}
+    private def {{name}}=(s : String)
+      @{{name}} = Option({{type}}).new(s.try {{convert}})
     end
   end
 
   macro string(name)
-    option({{name}}, String, s)
+    option({{name}}, String, &.to_s)
   end
   macro int(name)
-    option({{name}}, Int32, s.to_i)
+    option({{name}}, Int32, &.to_i)
   end
   macro bool(name)
-    option({{name}}, Bool, ["true", "yes", "false", "no"].index(s.downcase).not_nil! < 2)
+    option({{name}}, Bool) { |s|
+      {"true" => true, "yes" => true, "false" => false, "no" => false}.fetch(s.downcase) do
+        raise ArgumentError.new("Invalid boolean: '#{s}'")
+      end
+    }
   end
 end
