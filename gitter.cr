@@ -4,6 +4,7 @@
 
 require "http"
 require "json"
+require "markdown"
 
 
 class Gitter
@@ -118,6 +119,12 @@ class Gitter
             end
 
             puts "Gitter: #{room} <#{sender}> #{text.inspect}"
+
+            text = String.build do |io|
+              renderer = MarkdownTextRenderer.new(io)
+              Markdown::Parser.new(text, renderer).parse
+            end
+
             yield Message.new(sender, text, action: action, permalink: "#{location}?at=#{id}")
 
             wait_time = {wait_time / 2, 1.0}.max
@@ -132,5 +139,103 @@ class Gitter
         wait_time *= 2
       end
     end
+  end
+end
+
+
+private class MarkdownTextRenderer
+  include Markdown::Renderer
+
+  @url : String?
+  @list_index = 0
+
+  def initialize(@io : IO)
+  end
+
+  def begin_paragraph
+  end
+  def end_paragraph
+  end
+
+  def begin_italic
+    @io << "*"
+  end
+  def end_italic
+    @io << "*"
+  end
+  def begin_bold
+    @io << "*"
+  end
+  def end_bold
+    @io << "*"
+  end
+
+  def begin_header(level)
+    @io << (level == 1 ? "===" : "---")
+  end
+  def end_header(level)
+    @io << (level == 1 ? "===" : "---")
+  end
+
+  def begin_inline_code
+    @io << "`"
+  end
+  def end_inline_code
+    @io << "`"
+  end
+
+  def begin_code(language)
+    @io << "```\n"
+  end
+  def end_code
+    @io << "\n```"
+  end
+
+  def begin_quote
+    @io << "> "
+  end
+  def end_quote
+  end
+
+  def begin_unordered_list
+    @list_index = 0
+  end
+  def end_unordered_list
+  end
+
+  def begin_ordered_list
+    @list_index = 0
+  end
+  def end_ordered_list
+  end
+
+  def begin_list_item
+    @io << "\n" if @list_index > 0
+    @io << (@list_index += 1) << ") "
+  end
+  def end_list_item
+  end
+
+  def begin_link(@url)
+  end
+  def end_link
+    @io << " (" << @url << ")"
+    @url = nil
+  end
+
+  def image(url, alt)
+    @io << "(" unless @url
+    unless @url && url =~ %r(/thumb/[^/]+$)
+      @io << "(" << url << ")"
+    end
+    @io << ")" unless @url
+  end
+
+  def text(text)
+    @io << text
+  end
+
+  def horizontal_rule
+    @io << "\n"
   end
 end
