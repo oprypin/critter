@@ -57,15 +57,13 @@ class IRCConnection
       p line
     end
     @socket.not_nil! << line << "\r\n"
-  rescue e
-    puts "#{e.class}: #{e.message}"
   end
 
   def subscribe(channel) : Pipe
     @channels[channel.downcase] = result = Pipe(Message).new
     recipients = (@channels.keys + [nick]).map { |k| Regex.escape(k) } .join("|")
     @channels_regex = /^:([^ ]+)![^ ]+ +PRIVMSG +(#{recipients}) :(.+)/i
-    write "JOIN #{channel}"
+    write "JOIN #{channel}" rescue nil
     result
   end
 
