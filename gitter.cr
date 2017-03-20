@@ -97,11 +97,13 @@ class Gitter
 
   def run
     wait_time = 1.0
-    stream_url = "https://stream.gitter.im/v1/rooms/#{@room_id}/chatMessages"
     loop do
       begin
-        puts "GET #{stream_url}"
-        HTTP::Client.get(stream_url, headers: @headers.dup) do |resp|
+        puts "GET https://stream.gitter.im/v1/rooms/#{@room_id}/chatMessages"
+        client = HTTP::Client.new("stream.gitter.im", tls: true)
+        client.connect_timeout = 10.seconds
+        client.read_timeout = 3.minutes
+        client.get("/v1/rooms/#{@room_id}/chatMessages", headers: @headers.dup) do |resp|
           puts "Connected to Gitter #{room}"
           resp.body_io.each_line do |line|
             line = line.strip
