@@ -26,9 +26,11 @@ class IRCConnection
     socket.read_timeout = read_timeout
     socket.write_timeout = write_timeout
     socket.keepalive = true
+    socket.flush_on_newline = true
     @socket = @orig_socket = socket
     if ssl
-      @socket = OpenSSL::SSL::Socket::Client.new(socket)
+      @socket = socket = OpenSSL::SSL::Socket::Client.new(socket)
+      socket.flush_on_newline = true
     end
 
     sleep 2.seconds
