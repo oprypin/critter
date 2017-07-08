@@ -3,6 +3,7 @@
 
 !README*
 !LICENSE*
+!shard.yml
 !*.md
 !/src/
 !*.cr

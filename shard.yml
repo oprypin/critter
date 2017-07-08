@@ -1,0 +1,9 @@
+name: critter
+version: 0.1.0
+description:
+  Chat bot relaying messages between IRC and Gitter
+authors:
+  - Oleh Prypin <oleh@pryp.in>
+license: MIT
+
+
