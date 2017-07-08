@@ -6,4 +6,7 @@ authors:
   - Oleh Prypin <oleh@pryp.in>
 license: MIT
 
-
+dependencies:
+  emoji:
+    github: veelenga/emoji.cr
+    branch: master

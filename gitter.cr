@@ -6,6 +6,8 @@ require "http"
 require "json"
 require "markdown"
 
+require "emoji"
+
 
 class Gitter
   @room_id : String
@@ -121,6 +123,8 @@ class Gitter
             end
 
             puts "Gitter: #{room} <#{sender}> #{text.inspect}"
+
+            text = Emoji.emojize(text)
 
             text = String.build do |io|
               renderer = MarkdownTextRenderer.new(io)
