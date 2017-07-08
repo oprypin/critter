@@ -165,12 +165,12 @@ class IRC
       ending = "\001"
     end
     msg = "PRIVMSG #{channel} :#{msg}"
-    cutoff = 470
+    cutoff = 450
     if msg.bytesize <= cutoff
       write msg + ending
       return
     end
-    until (msg.byte_at cutoff - 1).chr.whitespace? || cutoff <= 420
+    until (msg.byte_at cutoff - 1).chr.whitespace? || cutoff <= 410
       cutoff -= 1
     end
     write msg.byte_slice(0, cutoff) + ending
