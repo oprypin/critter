@@ -39,27 +39,31 @@ def start(options)
 
   chats.each do |chat|
     spawn do
-      chat.run do |msg|
-        chats.each do |to|
-          next if to == chat
-          to.send(msg) unless msg.priv
-        end
-
-        if msg.priv || (
-          msg.text =~ /(@|, *|\b)#{Regex.escape(chat.nick)}(,|:|\b)/ &&
-          !($~[1].empty? && $~[2].empty?)
-        )
-          text = "I'm a bot, *bleep, bloop*. I relay messages between"
-          if msg.priv
-            text += " IRC and Gitter rooms."
-            text += " #{options.contact_info!}." if options.contact_info
-            text += " Source code: https://github.com/blaxpirit/critter"
-          else
-            items = chats.map { |c| c == chat ? "here" : c.location }
-            text += " #{items.join(" and ")}"
+      begin
+        chat.run do |msg|
+          chats.each do |to|
+            next if to == chat
+            to.send(msg) unless msg.priv
           end
-          chat.tell Message.new(msg.sender, text, msg.priv)
+
+          if msg.priv || (
+            msg.text =~ /(@|, *|\b)#{Regex.escape(chat.nick)}(,|:|\b)/ &&
+            !($~[1].empty? && $~[2].empty?)
+          )
+            text = "I'm a bot, *bleep, bloop*. I relay messages between"
+            if msg.priv
+              text += " IRC and Gitter rooms."
+              text += " #{options.contact_info!}." if options.contact_info
+              text += " Source code: https://github.com/blaxpirit/critter"
+            else
+              items = chats.map { |c| c == chat ? "here" : c.location }
+              text += " #{items.join(" and ")}"
+            end
+            chat.tell Message.new(msg.sender, text, msg.priv)
+          end
         end
+      rescue e
+        abort("#{e.class}: #{e.message}")
       end
     end
   end
