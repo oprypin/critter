@@ -177,10 +177,9 @@ private class MarkdownTextRenderer
   end
 
   def begin_header(level)
-    @io << (level == 1 ? "===" : "---")
+    @io << ("#" * level)
   end
   def end_header(level)
-    @io << (level == 1 ? "===" : "---")
   end
 
   def begin_inline_code
