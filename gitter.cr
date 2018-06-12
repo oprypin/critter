@@ -47,9 +47,13 @@ class Gitter
   private def request(_method, _path, **arguments)
     url = "https://api.gitter.im/v1/#{_path}"
     puts "#{_method} #{url} #{arguments.to_json}"
-    HTTP::Client.exec(
+    resp = HTTP::Client.exec(
       _method.to_s, url, headers: @headers.dup, body: arguments.to_json
-    ).body
+    )
+    if resp.status_code >= 400
+      raise "HTTP error #{resp.status_code}: #{resp.body}"
+    end
+    resp.body
   end
 
   def send(msg : String, action = false)
