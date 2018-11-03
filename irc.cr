@@ -26,11 +26,9 @@ class IRCConnection
     socket.read_timeout = read_timeout
     socket.write_timeout = write_timeout
     socket.keepalive = true
-    socket.flush_on_newline = true
     @socket = @orig_socket = socket
     if ssl
       @socket = socket = OpenSSL::SSL::Socket::Client.new(socket)
-      socket.flush_on_newline = true
     end
 
     sleep 2.seconds
@@ -59,6 +57,7 @@ class IRCConnection
       p line
     end
     @socket.not_nil! << line << "\r\n"
+    @socket.not_nil!.flush
   end
 
   def subscribe(channel) : Pipe
