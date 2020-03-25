@@ -4,7 +4,7 @@
 
 require "http"
 require "json"
-require "markdown"
+require "./markdown"
 
 require "emoji"
 
@@ -72,7 +72,7 @@ class Gitter
       /:-?[)\[@(*\/S|$O]|[:;]-?[\]DP]|X-D|:['’]-?\(|;-?\)|:-X|<\/?3|:[+\-]1:/i
     ) {
       if $~.begin == 0 || s[$~.begin.not_nil! - 1].whitespace? || $~.end == s.size
-        $~[0].insert($~[0].size/2, '\u{2060}')
+        $~[0].insert($~[0].size//2, '\u{2060}')
       else; $~[0]; end
     }
   end

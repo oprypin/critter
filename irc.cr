@@ -6,15 +6,13 @@ require "socket"
 require "openssl"
 
 
-alias Pipe = Channel::Unbuffered
-
 class IRCConnection
   @socket : TCPSocket | OpenSSL::SSL::Socket::Client | Nil
   @orig_socket : TCPSocket | Nil
   @channels_regex : Regex?
 
   def initialize(@options : ChatOptions)
-    @channels = {} of String => Pipe(Message)
+    @channels = {} of String => Channel(Message)
   end
 
   macro method_missing(call)
@@ -60,8 +58,8 @@ class IRCConnection
     @socket.not_nil!.flush
   end
 
-  def subscribe(channel) : Pipe
-    @channels[channel.downcase] = result = Pipe(Message).new
+  def subscribe(channel) : Channel
+    @channels[channel.downcase] = result = Channel(Message).new
     recipients = (@channels.keys + [nick]).map { |k| Regex.escape(k) } .join("|")
     @channels_regex = /^:([^ ]+)![^ ]+ +PRIVMSG +(#{recipients}) :(.+)/i
     write "JOIN #{channel}" rescue nil
@@ -128,7 +126,7 @@ end
 class IRC
   @@connections = {} of {String, String} => IRCConnection
   @connection : IRCConnection
-  @pipe : Pipe(Message)
+  @pipe : Channel(Message)
 
   def initialize(@options : ChatOptions)
     @connection = @@connections.fetch({host, nick}) {

@@ -3,7 +3,7 @@
 # Released under the terms of the MIT license (see LICENSE).
 
 
-private record Option(T), value : T, set : Bool do
+record Option(T), value : T, set : Bool do
   def initialize
     @value = uninitialized T
     @set = false

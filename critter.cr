@@ -7,6 +7,10 @@ require "./irc"
 require "./gitter"
 
 
+STDOUT.sync = true
+STDERR.sync = true
+
+
 class ChatOptions < Options
   string irc_host
   int    irc_port = 6667
