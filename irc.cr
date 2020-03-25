@@ -29,16 +29,17 @@ class IRCConnection
       @socket = socket = OpenSSL::SSL::Socket::Client.new(socket)
     end
 
-    sleep 2.seconds
+    sleep 10.seconds
     write "NICK #{nick}"
     write "USER #{username} #{hostname} unused :#{realname}"
     if password
-      write "PASS #{password}"
-      #write "PRIVMSG NickServ :identify #{password}"
+#     write "PASS #{password}"
+      write "PRIVMSG NickServ :identify #{password}"
     end
     sleep 2.seconds
     @channels.each_key do |channel|
       write "JOIN #{channel}"
+      sleep 0.3.seconds 
     end
   end
 
@@ -62,7 +63,7 @@ class IRCConnection
     @channels[channel.downcase] = result = Channel(Message).new
     recipients = (@channels.keys + [nick]).map { |k| Regex.escape(k) } .join("|")
     @channels_regex = /^:([^ ]+)![^ ]+ +PRIVMSG +(#{recipients}) :(.+)/i
-    write "JOIN #{channel}" rescue nil
+    #write "JOIN #{channel}" rescue nil
     result
   end
 
@@ -99,7 +100,7 @@ class IRCConnection
               @channels[recipient.downcase].send Message.new(
                 sender, msg, priv: priv, action: action
               )
-            when /^[^ ]+ +JOIN\b.*/i
+            else#when /^[^ ]+ +JOIN\b.*/i
               p line
             end
 

@@ -9,4 +9,11 @@ license: MIT
 dependencies:
   emoji:
     github: veelenga/emoji.cr
-    branch: master
+    commit: 324a5c8233c1f26ea704e340be4223b58c51406f
+  crystal:
+    github: crystal-lang/crystal
+    commit: b3feebdef9b8cc67834207b8fdcd65ff04394ec1
+
+targets:
+  critter:
+    main: critter.cr
