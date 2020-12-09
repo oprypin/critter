@@ -107,7 +107,7 @@ class IRCConnection
             wait_time = {wait_time / 2, 2.0}.max
           rescue e : InvalidByteSequenceError
             puts "#{e.class}: #{e.message}"
-          rescue e : IO::Timeout
+          rescue e : IO::TimeoutError
             puts "#{e.class}: #{e.message}"
             write "PING :#{hostname}"
             raise e if timeout

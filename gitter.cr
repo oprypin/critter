@@ -129,7 +129,7 @@ class Gitter
 
             id = msg["id"].as_s
             text = msg["text"].as_s.strip
-            if action = !!msg["status"]?
+            if action = (msg["status"].as_bool rescue false)
               text = text.split(2)[-1]  # Drop @nickname
             end
 
