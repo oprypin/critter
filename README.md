@@ -2,7 +2,7 @@
 
 ### Chat bot relaying messages between [IRC][] and [Gitter][]
 
-Requires [Crystal][] 0.18 or later to compile.
+Requires [Crystal][] 0.34 or later to compile.
 
 Check it out: [on Gitter](https://gitter.im/blaxpirit/critter) / [*#critterbot* on freenode](https://webchat.freenode.net/?channels=%23critterbot&prompt=1&randomnick=1)
 

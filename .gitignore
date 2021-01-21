@@ -3,8 +3,9 @@
 
 !README*
 !LICENSE*
-!shard.yml
 !*.md
-!/src/
+!/shard.yml
+!/shard.lock
 !*.cr
 !/logo.png
+!/Makefile

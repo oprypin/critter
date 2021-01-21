@@ -4,7 +4,7 @@
 
 require "http"
 require "json"
-require "./markdown"
+require "markdown"
 
 require "emoji"
 
