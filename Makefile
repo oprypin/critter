@@ -6,7 +6,7 @@ critter: $(wildcard *.cr) lib lib/markdown
 lib: shard.lock
 	shards install
 
-lib/markdown:
+lib/markdown: crystal.zip
 	unzip -o crystal.zip 'crystal-b3feebdef9b8cc67834207b8fdcd65ff04394ec1/src/markdown*'
 	mkdir -p lib
 	mv crystal-b3feebdef9b8cc67834207b8fdcd65ff04394ec1/src/* lib/
