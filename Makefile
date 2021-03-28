@@ -4,7 +4,7 @@ critter: $(wildcard *.cr) lib lib/markdown
 	shards build --error-trace $(if $(release),--release )critter
 
 lib: shard.lock
-	shards install
+	shards install --ignore-crystal-version
 
 lib/markdown: crystal.zip
 	unzip -o crystal.zip 'crystal-b3feebdef9b8cc67834207b8fdcd65ff04394ec1/src/markdown*'
