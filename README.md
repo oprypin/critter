@@ -4,7 +4,7 @@
 
 Requires [Crystal][] 0.34 or later to compile.
 
-Check it out: [on Gitter](https://gitter.im/blaxpirit/critter) / [*#critterbot* on freenode](https://webchat.freenode.net/?channels=%23critterbot&prompt=1&randomnick=1)
+Check it out: [on Gitter](https://gitter.im/blaxpirit/critter) / *#critterbot* on [Libera.Chat](https://libera.chat/)
 
 The messages are sent from one nickname &ndash; a special bot account, both on IRC and Gitter. It looks like this:
 
@@ -30,9 +30,9 @@ Long/multiline messages (primarily code pastes) from Gitter are collapsed when s
 
 ```bash
 critter \
---irc-host=chat.freenode.net --irc-port=6697 --irc-ssl=yes --irc-nick=FromGitter    \
+--irc-host=irc.libera.chat --irc-port=6697 --irc-ssl=yes --irc-nick=FromGitter    \
 --irc-password='Pa$$word' --gitter-api-key=da39a3ee5e6b4b0d3255bfef95601890afd80709 \
---contact-info="Contact ... on freenode or email bridge@example.org for support"    \
+--contact-info="Contact ... on Libera.Chat or email bridge@example.org for support"    \
 --irc-channel=##my-channel --gitter-room=CoolDude/testing \;                        \
 --irc-channel=#cool-thing  --gitter-room=CoolOrg/thing
 ```
