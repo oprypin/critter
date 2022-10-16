@@ -1,6 +1,6 @@
 release ?=
 
-critter: $(wildcard *.cr) lib lib/markdown
+bin/critter: $(wildcard *.cr) lib lib/markdown
 	shards build --error-trace $(if $(release),--release )critter
 
 lib: shard.lock
